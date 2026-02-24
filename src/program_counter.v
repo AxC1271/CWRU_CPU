@@ -1,7 +1,13 @@
 `timescale 1ns / 1ps 
 
 module program_counter (
-
+    input wire clk,
+    input wire [31:0] pc_in,
+    output reg [31:0] pc_out
 );
+
+always @(posedge clk) begin
+    pc_in <= pc_out;
+end
 
 endmodule
