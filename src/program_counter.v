@@ -7,7 +7,7 @@ module program_counter (
 );
 
 always @(posedge clk) begin
-    pc_in <= pc_out;
+    pc_out <= pc_in;
 end
 
 endmodule
