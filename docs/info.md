@@ -125,18 +125,33 @@ Refer to this diagram to see how the immediates are encoded in each instruction.
 
 The control unit asserts flags that help facilitate the `execute` stage of the CPU. Generally, it needs to take in the opcode, funct3, and funct7 as inputs, and it outputs the following values:
 
-- RegWrite: write to reg
-- MemRead: read from memory
-- MemWrite: write to memory
-- BranchEq: did branch equal
-- MemToReg: Load to reg from mem
-- ALUSrc: add from register or immediate
-- ALUCont: opcode for ALU
-- JMP: did a jump occur
+- RegWrite: are we writing the result to reg?
+- MemRead: are we reading from memory?
+- MemWrite: are we writing to memory?
+- BranchEq: is the `beq` condition satisfied?
+- MemToReg: are we loading from memory to reg?
+- ALUSrc: which operand are we using?
+- ALUCont: what type of operation are we using?
+- JMP: did a jump occur?
 
 ### Arithmetic Logic Unit
 
+The arithmetic logic unit (also known as the ALU) is the 
+calculator that performs mathematical operations on your operands. 
+The ALU accepts the following pins:
+
+* `op1`: your first operand
+* `op2`: second operand (can be rs2 or immediate)
+* `opcode`: determines what operation you're doing
+* `res`: the result of the operation
+* `zero_flag`: used to check for branch conditions
+
+To check for what to assert based on what opcode, be sure to check
+the RISC-V specifications to know what type of operation is associated with each opcode.
+
 ### Data Memory
+
+The data memory 
 
 ---
 
