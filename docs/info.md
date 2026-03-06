@@ -134,6 +134,20 @@ The control unit asserts flags that help facilitate the `execute` stage of the C
 - ALUCont: what type of operation are we using?
 - JMP: did a jump occur?
 
+This can be implemented using a really large switch case. Recall that we have 6 types of instructions (R, I, S, B, U, J) all with different opcodes and funct codes.
+
+1. R-type
+* ALL: 0110011
+2. I-type
+* I-ARITH: 0010011
+* LOAD: 0000011
+3. S-type
+* STORE: 0100011
+4. B-type
+* BRANCH: 1100011
+5. U-type
+6. J-type
+
 ### Arithmetic Logic Unit
 
 The arithmetic logic unit (also known as the ALU) is the 
@@ -151,7 +165,7 @@ the RISC-V specifications to know what type of operation is associated with each
 
 ### Data Memory
 
-The data memory 
+The data memory acts as a secondary source of RAM which stores results of data temporarily. Like its sibling (instruction memory) where it contains instruction data, it contains memory data from certain types of instructions. Specifically, `STORE` instructions store data into data memory, where the CPU might need to access it later on. To access the data from data memory, you want to use the `LOAD` instruction to "load" it into your register file.
 
 ---
 
@@ -163,8 +177,7 @@ Explain how to use your project
 
 ## External hardware
 
-There's no hardware needed to run this ASIC! It will run a Fibonacci sequence 
-on the seven-segment display using assembly instructions.
+There's no hardware needed to run this ASIC! It will run a Fibonacci sequence on the seven-segment display using assembly instructions.
 
 ---
 
