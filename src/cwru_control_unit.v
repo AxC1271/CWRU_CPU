@@ -15,4 +15,8 @@ module cwru_control_unit (
     output logic jump
 );
 
+// define your logic here
+// if you need help, refer to doc or ask 
+// me on discord
+
 endmodule

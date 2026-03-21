@@ -10,4 +10,6 @@ module cwru_alu # (
     output zero_flag
 );
 
+// define your logic here
+
 endmodule

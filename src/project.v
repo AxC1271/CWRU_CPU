@@ -22,6 +22,7 @@ module tt_um_cwru_cpu (
   assign uio_oe  = 0;
 
   // instantiate modules here, fill in the blanks
+  // what else would we need here besides the modules?
   cwru_program_counter pc (
     .clk(),
     .pc_in(),

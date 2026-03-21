@@ -20,6 +20,8 @@ module cwru_register_file # (
     output wire[WIDTH-1:0] wr_data
 );
 
-    // define your logic starting here
+// define your logic starting here
+// quick pointers: register 0 shouldn't be writeable
+// decide if your reads use combinational or sequential logic
 
 endmodule
