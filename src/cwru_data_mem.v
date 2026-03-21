@@ -13,7 +13,7 @@ module cwru_data_mem # (
     input mem_write,
 
     // output res
-    output mem_data
+    output[WIDTH-1:0] mem_data
 );
 
 // define your logic starting here

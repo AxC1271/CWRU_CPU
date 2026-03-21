@@ -5,14 +5,14 @@ module cwru_control_unit (
     input wire[2:0] funct3,
     input wire[6:0] funct7,
 
-    output logic reg_write,
-    output logic mem_read,
-    output logic mem_write,
-    output logic branch_eq,
-    output logic mem_to_reg,
-    output logic alu_src,
-    output logic alu_cont,
-    output logic jump
+    output reg reg_write,
+    output reg mem_read,
+    output reg mem_write,
+    output reg branch_eq,
+    output reg mem_to_reg,
+    output reg alu_src,
+    output reg[3:0] alu_cont,
+    output reg jump
 );
 
 // define your logic here

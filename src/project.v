@@ -21,6 +21,38 @@ module tt_um_cwru_cpu (
   assign uio_out = 0;
   assign uio_oe  = 0;
 
+  // instantiate ALL necessary signals here
+
+  // program counter
+  wire[31:0] pc_in, pc_out;
+
+  // instruction memory
+  wire[31:0] current_instruction;
+
+  // register file
+  wire[4:0] rd_addr1, rd_addr2, wr_addr;
+  wire[31:0] rd_data1, rd_data2, wr_data;
+
+  // control unit
+  wire[6:0] opcode;
+  wire[2:0] funct3;
+  wire[6:0] funct7;
+
+  wire reg_write, mem_read, mem_write, branch_eq;
+  wire mem_to_reg, alu_src, jump;
+  wire[3:0] alu_cont;
+
+  // immediate generator
+  wire[31:0] immediate;
+
+  // arithmetic logic unit
+  wire[31:0] res;
+  wire zero_flag;
+
+  // data memory
+  wire[31:0] mem_data;
+  
+
   // instantiate modules here, fill in the blanks
   // what else would we need here besides the modules?
   cwru_program_counter pc (
@@ -85,6 +117,6 @@ module tt_um_cwru_cpu (
 
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  wire _unused = &{ena, 1'b0};
 
 endmodule
