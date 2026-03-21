@@ -17,6 +17,7 @@ module cwru_register_file # (
 
     // wr interface
     input wire[4:0] wr_addr,
+    input wire reg_write,
     output wire[WIDTH-1:0] wr_data
 );
 

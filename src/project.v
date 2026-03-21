@@ -42,6 +42,7 @@ module tt_um_cwru_cpu (
     .rd_data1(),
     .rd_data2(),
     .wr_addr(),
+    .reg_write(),
     .wr_data()
   );
 
