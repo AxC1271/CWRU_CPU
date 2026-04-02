@@ -2,11 +2,21 @@
 
 module cwru_instr_mem # (
     parameter WIDTH = 32
+    parameter DEPTH = 256
 )(
     input wire[WIDTH-1:0] pc,
     output reg[WIDTH-1:0] instr
 );
 
-// define your logic starting here
+   reg [WIDTH-1:0] mem [0:DEPTH-1];
+
+    // define your logic starting here
+    initial begin
+        $readmemh("program.hex", mem);
+    end
+
+   always @(*) begin
+        instr = mem[pc[31:2]];
+    end
 
 endmodule
