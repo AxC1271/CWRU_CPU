@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
-module alu (
-
+module cwru_display (
+    
 );
 
 endmodule
