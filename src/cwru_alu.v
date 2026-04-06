@@ -11,5 +11,8 @@ module cwru_alu # (
 );
 
 // define your logic here
+always @(*) begin
+
+end
 
 endmodule
