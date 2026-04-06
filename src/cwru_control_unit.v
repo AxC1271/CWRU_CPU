@@ -31,6 +31,7 @@ module cwru_control_unit (
 
     localparam FUNCT3_ADD_SUB = 3'b000;
     localparam FUNCT3_SLL = 3'b001;
+    localparam FUNCT3_SRL = 3'b101;
     localparam FUNCT3_SLT = 3'b010;
     localparam FUNCT3_AND = 3'b111;
     localparam FUNCT3_OR = 3'b110;
@@ -45,6 +46,7 @@ module cwru_control_unit (
     localparam reg [3:0] ALU_OR  = 4'b0110;
     localparam reg [3:0] ALU_XOR = 4'b0100;
     localparam reg [3:0] ALU_SLL = 4'b0001;
+    localparam reg [3:0] ALU_SRL = 4'b1001;
     localparam reg [3:0] ALU_SLT = 4'b0010;
     localparam reg [3:0] ALU_LUI = 4'b1110;
     localparam reg [3:0] ALU_AUIPC = 4'b1101;
@@ -77,6 +79,7 @@ module cwru_control_unit (
                 FUNCT3_OR: alu_cont = ALU_OR; // or
                 FUNCT3_XOR: alu_cont = ALU_XOR; // xor
                 FUNCT3_SLL: alu_cont = ALU_SLL; // sll
+                FUNCT3_SRL: alu_cont = ALU_SRL; // srl
                 FUNCT3_SLT: alu_cont = ALU_SLT; // slt
                 default: alu_cont = ALU_ADD;
             endcase
