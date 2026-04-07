@@ -44,16 +44,10 @@ module cwru_register_file # (
     end
 
     always @(*) begin
-        if (rd_addr1 == 5'b00000)
-            rd_data1 = {WIDTH{1'b0}};
-        else
-            rd_data1 = registers[rd_addr1];
+        (rd_addr1 == 5'b00000) ? rd_data1 = {WIDTH{1'b0}} :rd_data1 = registers[rd_addr1];
     end
     
     always @(*) begin
-        if (rd_addr2 == 5'b00000)
-            rd_data2 = {WIDTH{1'b0}};
-        else
-            rd_data2 = registers[rd_addr2];
+        (rd_addr2 == 5'b00000) ? rd_data2 = {WIDTH{1'b0}} : rd_data2 = registers[rd_addr2];
     end
 endmodule
