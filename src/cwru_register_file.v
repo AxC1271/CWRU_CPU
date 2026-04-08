@@ -43,11 +43,6 @@ module cwru_register_file # (
         end      
     end
 
-    always @(*) begin
-        (rd_addr1 == 5'b00000) ? rd_data1 = {WIDTH{1'b0}} :rd_data1 = registers[rd_addr1];
-    end
-    
-    always @(*) begin
-        (rd_addr2 == 5'b00000) ? rd_data2 = {WIDTH{1'b0}} : rd_data2 = registers[rd_addr2];
-    end
+    assign rd_data1 = registers[rd_addr1];
+    assign rd_data2 = registers[rd_addr2];
 endmodule

@@ -1,7 +1,7 @@
 `timescale 1ns / 1 ps 
 
 module cwru_data_mem # (
-    parameter WIDTH = 32
+    parameter WIDTH = 32,
     parameter DEPTH = 256
 )(
     input wire clk,

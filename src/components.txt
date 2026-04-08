@@ -1,0 +1,8 @@
+cwru_alu.v
+cwru_control_unit.v
+cwru_data_mem.v 
+cwru_imm_gen.v 
+cwru_instr_mem.v 
+cwru_program_counter.v 
+cwru_register_file.v 
+project.v 
