@@ -89,8 +89,8 @@ module tt_um_cwru_cpu (
   cwru_control_unit cu (
     .opcode(opcode),
     .funct3(funct3),
-    .funct7(),
-    .reg_write(),
+    .funct7(funct7),
+    .reg_write(funct3),
     .mem_read(mem_read),
     .mem_write(mem_write),
     .branch_eq(branch_eq),
