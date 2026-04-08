@@ -5,103 +5,118 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge
 
-
-# fibonacci sequence produced by the program:
-# first sw fires after add x3,x1,x2 computes 0+1=1, so sequence starts at 1
 FIBONACCI = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
 
-# how many cycles the CPU needs to reach the first sw instruction.
-# _start has 4 addi instructions before loop, so first store is at cycle 4+3=7
-# (4 inits + add + sw). Adjust if your pipeline behaves differently.
-CYCLES_TO_FIRST_STORE = 7
 
-# how many cycles between each subsequent store (6 instructions in the loop body)
-CYCLES_PER_TERM = 6
+async def reset(dut):
+    """Helper to apply and release reset."""
+    dut.ena.value    = 1
+    dut.ui_in.value  = 0
+    dut.uio_in.value = 0
+    dut.rst_n.value  = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value  = 1
 
 
 @cocotb.test()
 async def test_reset(dut):
-    """PC and registers should be zero immediately after reset."""
-    dut._log.info("Testing reset behavior")
-
+    """uo_out should be 0 during reset."""
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
 
-    dut.ena.value   = 1
-    dut.ui_in.value = 0
+    dut.ena.value    = 1
+    dut.ui_in.value  = 0
     dut.uio_in.value = 0
     dut.rst_n.value  = 0
 
     await ClockCycles(dut.clk, 5)
-
-    # while in reset, uo_out should be 0
     assert dut.uo_out.value == 0, \
         f"Expected uo_out=0 during reset, got {dut.uo_out.value}"
-
     dut._log.info("Reset test passed")
 
 
 @cocotb.test()
 async def test_fibonacci(dut):
     """
-    Run the Fibonacci program and check that uo_out (lower 8 bits of mem_data)
-    reflects each term after the corresponding sw instruction commits.
+    Wait for each PRNT instruction (opcode 0x7F, display asserted),
+    then check rd_data1 matches the expected fibonacci term.
     """
-    dut._log.info("Starting Fibonacci test")
-
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
-
-    # reset
-    dut.ena.value    = 1
-    dut.ui_in.value  = 0
-    dut.uio_in.value = 0
-    dut.rst_n.value  = 0
-    await ClockCycles(dut.clk, 5)
-    dut.rst_n.value  = 1
+    await reset(dut)
 
     dut._log.info("Reset released — CPU running")
 
-    # wait until the first store fires
-    await ClockCycles(dut.clk, CYCLES_TO_FIRST_STORE)
-
     for i, expected in enumerate(FIBONACCI):
-        await RisingEdge(dut.clk)
-        observed = dut.uo_out.value.integer
-        dut._log.info(f"  Term {i+1}: uo_out={observed}, expected={expected}")
+        # wait for a rising edge where display is asserted
+        while True:
+            await RisingEdge(dut.clk)
+            if dut.rst_n.value == 1 and dut.display.value == 1:
+                break
+
+        observed = dut.rd_data1.value.integer
+        dut._log.info(f"  Term {i+1}: rd_data1={observed}, expected={expected}")
         assert observed == expected, \
             f"FAIL at Fibonacci term {i+1}: got {observed}, expected {expected}"
-
-        if i < len(FIBONACCI) - 1:
-            # advance to just before the next store
-            await ClockCycles(dut.clk, CYCLES_PER_TERM - 1)
 
     dut._log.info("All 10 Fibonacci terms matched — PASS")
 
 
 @cocotb.test()
-async def test_halt(dut):
-    """after the program halts (jal x0, done), uo_out should stay stable."""
-    dut._log.info("Testing halt stability")
-
+async def test_pc_advances(dut):
+    """PC should increment by 4 each cycle during normal execution."""
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
+    await reset(dut)
 
-    dut.ena.value    = 1
-    dut.ui_in.value  = 0
-    dut.uio_in.value = 0
-    dut.rst_n.value  = 0
-    await ClockCycles(dut.clk, 5)
-    dut.rst_n.value  = 1
+    # sample a few consecutive non-branch cycles
+    prev_pc = None
+    consecutive = 0
+    for _ in range(100):
+        await RisingEdge(dut.clk)
+        current_pc = dut.pc_out.value.integer
+        instr = dut.current_instruction.value.integer
+        opcode = instr & 0x7F
 
-    # run well past the end of the program
-    total_program_cycles = CYCLES_TO_FIRST_STORE + (len(FIBONACCI) * CYCLES_PER_TERM) + 20
-    await ClockCycles(dut.clk, total_program_cycles)
+        # skip branches and jumps
+        if opcode in (0x63, 0x6F, 0x67):
+            prev_pc = None
+            continue
 
+        if prev_pc is not None:
+            assert current_pc == (prev_pc + 4) & 0xFFFFFFFF, \
+                f"PC did not advance by 4: prev={prev_pc:#010x}, curr={current_pc:#010x}"
+            consecutive += 1
+            if consecutive >= 5:
+                break
+        prev_pc = current_pc
+
+    assert consecutive >= 5, "Could not find 5 consecutive non-branch PC increments"
+    dut._log.info(f"PC advance test passed ({consecutive} consecutive +4 steps verified)")
+
+
+@cocotb.test()
+async def test_halt(dut):
+    """After the infinite loop at the end, uo_out should stay stable."""
+    clock = Clock(dut.clk, 10, unit="us")
+    cocotb.start_soon(clock.start())
+    await reset(dut)
+
+    # wait for all 10 fibonacci prints plus some buffer
+    prints_seen = 0
+    timeout = 2000
+    for _ in range(timeout):
+        await RisingEdge(dut.clk)
+        if dut.display.value == 1:
+            prints_seen += 1
+
+    assert prints_seen >= len(FIBONACCI), \
+        f"Only saw {prints_seen} PRNT instructions, expected at least {len(FIBONACCI)}"
+
+    # now check uo_out is stable (it's tied to 0 in your current top level)
     snapshot = dut.uo_out.value.integer
-    await ClockCycles(dut.clk, 10)
-
+    await ClockCycles(dut.clk, 20)
     assert dut.uo_out.value.integer == snapshot, \
-        f"uo_out changed after halt: was {snapshot}, now {dut.uo_out.value.integer}"
+        f"uo_out changed after program end: was {snapshot}, now {dut.uo_out.value.integer}"
 
-    dut._log.info(f"Halt stable at uo_out={snapshot} — PASS")
+    dut._log.info(f"Halt stability test passed — uo_out stable at {snapshot}")

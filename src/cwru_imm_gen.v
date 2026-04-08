@@ -24,13 +24,13 @@ module cwru_imm_gen # (
                 immediate <= {{20{instruction[31]}}, instruction[31:25], instruction[11:7]};
             
             // B-type
-            7'b0100011: 
-                immediate <= {{19{instruction[31]}},
-                instruction[31],
-                instruction[7],
-                instruction[30:25],
-                instruction[11:8],
-                1'b0};
+            7'b1100011:
+            immediate <= {{19{instruction[31]}},
+                        instruction[31],
+                        instruction[7],
+                        instruction[30:25],
+                        instruction[11:8],
+                        1'b0};
 
             // U-type 
             7'b0110111, 

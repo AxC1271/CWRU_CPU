@@ -6,3 +6,4 @@ cwru_instr_mem.v
 cwru_program_counter.v 
 cwru_register_file.v 
 project.v 
+tb.v 

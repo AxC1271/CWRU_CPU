@@ -12,7 +12,8 @@ module cwru_control_unit (
     output reg mem_to_reg,
     output reg alu_src,
     output reg [3:0] alu_cont,
-    output reg jump
+    output reg jump,
+    output reg display
 );
 
     // local parameters in binary for the different instruction types, functions
@@ -28,6 +29,7 @@ module cwru_control_unit (
     localparam OPCODE_U_LUI = 7'b0110111;
     localparam OPCODE_U_AUIPC = 7'b0010111;
     localparam OPCODE_J_TYPE = 7'b1101111;
+    localparam OPCODE_PRINT = 7'b1111111;
 
     localparam FUNCT3_ADD_SUB = 3'b000;
     localparam FUNCT3_SLL = 3'b001;
@@ -148,6 +150,11 @@ module cwru_control_unit (
         OPCODE_J_TYPE: begin
             reg_write = 1'b1;
             jump = 1'b1;
+        end
+
+        // Custom-defined print opcode
+        OPCODE_PRINT: begin
+            display = 1'b1;
         end
         
         default: begin
