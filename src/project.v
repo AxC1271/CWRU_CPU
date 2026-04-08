@@ -52,71 +52,80 @@ module tt_um_cwru_cpu (
   // data memory
   wire[31:0] mem_data;
   
+  // instruction fields
+  assign opcode   = current_instruction[6:0]; 
+  assign wr_addr  = current_instruction[11:7];
+  assign funct3   = current_instruction[14:12];
+  assign rd_addr1 = current_instruction[19:15];
+  assign rd_addr2 = current_instruction[24:20];
+  assign funct7   = current_instruction[31:25];
+
 
   // instantiate modules here, fill in the blanks
   // what else would we need here besides the modules?
   cwru_program_counter pc (
-    .clk(),
-    .pc_in(),
-    .pc_out()
+    .clk(clk),
+    .pc_in(pc_in),
+    .pc_out(pc_out)
   );
 
-  cwru_instr_mem im (
-    .pc(),
-    .instr()
+  cwru_instr_mem im ( 
+    .pc(pc_out), // from program counter
+    .instr(current_instruction)
   );
 
   cwru_register_file rf (
-    .clk(),
-    .rst_n(),
-    .rd_addr1(),
-    .rd_addr2(),
-    .rd_data1(),
-    .rd_data2(),
-    .wr_addr(),
-    .reg_write(),
-    .wr_data()
+    .clk(clk),
+    .rst_n(rst_n),
+    .rd_addr1(rd_addr1),
+    .rd_addr2(rd_addr2),
+    .rd_data1(rd_data1),
+    .rd_data2(rd_data2),
+    .wr_addr(wr_addr),
+    .reg_write(reg_write),
+    .wr_data(wr_data)
   );
 
   cwru_control_unit cu (
-    .opcode(),
-    .funct3(),
+    .opcode(opcode),
+    .funct3(funct3),
     .funct7(),
     .reg_write(),
-    .mem_read(),
-    .mem_write(),
-    .branch_eq(),
-    .mem_to_reg(),
-    .alu_src(),
-    .alu_cont(),
-    .jump()
+    .mem_read(mem_read),
+    .mem_write(mem_write),
+    .branch_eq(branch_eq),
+    .mem_to_reg(mem_to_reg),
+    .alu_src(alu_src),
+    .alu_cont(alu_cont),
+    .jump(jump)
   );
 
   cwru_imm_gen ig (
-    .instruction(),
-    .immediate()
+    .instruction(current_instruction),
+    .immediate(immediate)
   );
 
   cwru_alu alu (
-    .op1(),
-    .op2(),
-    .alu_cont(),
-    .res(),
-    .zero_flag()
+    .op1(op1),
+    .op2(op2),
+    .pc(pc),
+    .alu_cont(alu_cont),
+    .res(res),
+    .zero_flag(zero_flag)
   );
 
   cwru_data_mem dm (
-    .clk(),
-    .rst_n(),
-    .addr(),
-    .wr_data(),
-    .mem_read(),
-    .mem_write(),
-    .mem_data()
+    .clk(clk),
+    .rst_n(rst_n),
+    .addr(res),
+    .wr_data(rd_data2),
+    .mem_read(mem_read),
+    .mem_write(mem_write),
+    .mem_data(mem_data)
   );
 
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, 1'b0};
+  wire _unused = &{ena, ui_in, uio_in 1'b0};
 
 endmodule
