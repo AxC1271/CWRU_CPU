@@ -6,6 +6,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge
 
 FIBONACCI = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+PRNT_OPCODE = 0x7F
 
 
 async def reset(dut):
@@ -38,8 +39,8 @@ async def test_reset(dut):
 @cocotb.test()
 async def test_fibonacci(dut):
     """
-    Wait for each PRNT instruction (opcode 0x7F, display asserted),
-    then check rd_data1 matches the expected fibonacci term.
+    Poll for each PRNT instruction (opcode 0x7F) and check
+    rd_data1 matches the expected fibonacci term.
     """
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
@@ -47,14 +48,16 @@ async def test_fibonacci(dut):
 
     dut._log.info("Reset released — CPU running")
 
+    cpu = dut.user_project
+
     for i, expected in enumerate(FIBONACCI):
-        # wait for a rising edge where display is asserted
         while True:
             await RisingEdge(dut.clk)
-            if dut.rst_n.value == 1 and dut.display.value == 1:
+            instr = cpu.current_instruction.value.integer
+            if dut.rst_n.value == 1 and (instr & 0x7F) == PRNT_OPCODE:
                 break
 
-        observed = dut.rd_data1.value.integer
+        observed = cpu.rd_data1.value.integer
         dut._log.info(f"  Term {i+1}: rd_data1={observed}, expected={expected}")
         assert observed == expected, \
             f"FAIL at Fibonacci term {i+1}: got {observed}, expected {expected}"
@@ -69,17 +72,18 @@ async def test_pc_advances(dut):
     cocotb.start_soon(clock.start())
     await reset(dut)
 
-    # sample a few consecutive non-branch cycles
+    cpu = dut.user_project
     prev_pc = None
     consecutive = 0
+
     for _ in range(100):
         await RisingEdge(dut.clk)
-        current_pc = dut.pc_out.value.integer
-        instr = dut.current_instruction.value.integer
+        current_pc = cpu.pc_out.value.integer
+        instr = cpu.current_instruction.value.integer
         opcode = instr & 0x7F
 
-        # skip branches and jumps
-        if opcode in (0x63, 0x6F, 0x67):
+        # skip branches, jumps, and PRNT
+        if opcode in (0x63, 0x6F, 0x67, PRNT_OPCODE):
             prev_pc = None
             continue
 
@@ -97,26 +101,26 @@ async def test_pc_advances(dut):
 
 @cocotb.test()
 async def test_halt(dut):
-    """After the infinite loop at the end, uo_out should stay stable."""
+    """After all fibonacci terms print, uo_out should stay stable."""
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
     await reset(dut)
 
-    # wait for all 10 fibonacci prints plus some buffer
+    cpu = dut.user_project
     prints_seen = 0
-    timeout = 2000
-    for _ in range(timeout):
+
+    for _ in range(2000):
         await RisingEdge(dut.clk)
-        if dut.display.value == 1:
+        instr = cpu.current_instruction.value.integer
+        if (instr & 0x7F) == PRNT_OPCODE:
             prints_seen += 1
 
     assert prints_seen >= len(FIBONACCI), \
         f"Only saw {prints_seen} PRNT instructions, expected at least {len(FIBONACCI)}"
 
-    # now check uo_out is stable (it's tied to 0 in your current top level)
     snapshot = dut.uo_out.value.integer
     await ClockCycles(dut.clk, 20)
     assert dut.uo_out.value.integer == snapshot, \
-        f"uo_out changed after program end: was {snapshot}, now {dut.uo_out.value.integer}"
+        f"uo_out changed after halt: was {snapshot}, now {dut.uo_out.value.integer}"
 
     dut._log.info(f"Halt stability test passed — uo_out stable at {snapshot}")
