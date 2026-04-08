@@ -47,6 +47,7 @@ module cwru_imm_gen # (
                             1'b0}; 
             default:
                 immediate <= 32'b0;
+        endcase
     end
 
 endmodule

@@ -21,40 +21,33 @@ module cwru_register_file # (
     input wire[WIDTH-1:0] wr_data
 );
 
-// define your logic starting here
-// quick pointers: register 0 shouldn't be writeable
-// decide if your reads use combinational or sequential logic
-reg [WIDTH-1:0] registers [WIDTH-1:0];
+    // define your logic starting here
+    // quick pointers: register 0 shouldn't be writeable
+    // decide if your reads use combinational or sequential logic
+    reg [WIDTH-1:0] registers [WIDTH-1:0];
 
 
-integer i;
+    integer i;
 
-always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-        for (i = 0; i < 32; i = i + 1)
-            registers[i] <= 32'b00;
-        end
-    else begin
-        if (reg_write) begin
-            if (wr_addr != 5'b00000) begin
-                registers[wr_addr] <= wr_data;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            for (i = 0; i < 32; i = i + 1)
+                registers[i] <= 32'b00;
             end
-        end
-    end      
-end
+        else begin
+            if (reg_write) begin
+                if (wr_addr != 5'b00000) begin
+                    registers[wr_addr] <= wr_data;
+                end
+            end
+        end      
+    end
 
-always @(*) begin
-    if (rd_addr1 == 5'b00000)
-        rd_data1 = {WIDTH{1'b0}};
-    else
-        rd_data1 = registers[rd_addr1];
-end
- 
-always @(*) begin
-    if (rd_addr2 == 5'b00000)
-        rd_data2 = {WIDTH{1'b0}};
-    else
-        rd_data2 = registers[rd_addr2];
-end
-
+    always @(*) begin
+        (rd_addr1 == 5'b00000) ? rd_data1 = {WIDTH{1'b0}} :rd_data1 = registers[rd_addr1];
+    end
+    
+    always @(*) begin
+        (rd_addr2 == 5'b00000) ? rd_data2 = {WIDTH{1'b0}} : rd_data2 = registers[rd_addr2];
+    end
 endmodule

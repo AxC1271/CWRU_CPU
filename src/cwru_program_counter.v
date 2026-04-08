@@ -6,8 +6,8 @@ module cwru_program_counter (
     output reg [31:0] pc_out
 );
 
-always @(posedge clk) begin
+    always @(posedge clk) begin
     pc_out <= pc_in;
-end
+    end
 
 endmodule
