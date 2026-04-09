@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps 
-
 module cwru_control_unit (
     input wire [6:0] opcode,
     input wire [2:0] funct3,

@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps 
-
 module cwru_program_counter (
     input wire clk,
     input wire [31:0] pc_in,

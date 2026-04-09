@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module cwru_imm_gen # (
     parameter WIDTH = 32
 )(
