@@ -11,7 +11,6 @@ module tt_um_cwru_cpu (
     input  wire       rst_n
 );
 
-  assign uo_out  = 8'b0;
   assign uio_out = 8'b0;
   assign uio_oe  = 8'b0;
 
@@ -32,6 +31,9 @@ module tt_um_cwru_cpu (
   wire [31:0] immediate;
   wire [31:0] res;
   wire        zero_flag;
+
+  // output lower 8 bits of rd_data1 so pins are connected
+  assign uo_out = rd_data1[7:0];
 
   // instruction fields
   assign opcode   = current_instruction[6:0];
@@ -58,7 +60,7 @@ module tt_um_cwru_cpu (
                  branch_taken ? pc_branch :
                                 pc_plus4;
 
-  // writeback — result goes directly to register file
+  // writeback
   assign wr_data = res;
 
   cwru_program_counter pc_inst (
@@ -113,6 +115,6 @@ module tt_um_cwru_cpu (
     .zero_flag(zero_flag)
   );
 
-  wire _unused = &{ena, ui_in, uio_in, display, 1'b0};
+  wire _unused = &{ena, ui_in, uio_in, display, rd_data1[31:8], 1'b0};
 
 endmodule
