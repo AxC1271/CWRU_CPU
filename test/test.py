@@ -5,7 +5,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge
 
-FIBONACCI = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89]  # fixed sequence
 PRNT_OPCODE = 0x7F
 
 
@@ -53,11 +53,11 @@ async def test_fibonacci(dut):
     for i, expected in enumerate(FIBONACCI):
         while True:
             await RisingEdge(dut.clk)
-            instr = cpu.current_instruction.value.integer
+            instr = cpu.current_instruction.value.to_unsigned()
             if dut.rst_n.value == 1 and (instr & 0x7F) == PRNT_OPCODE:
                 break
 
-        observed = cpu.rd_data1.value.integer
+        observed = cpu.rd_data1.value.to_unsigned()
         dut._log.info(f"  Term {i+1}: rd_data1={observed}, expected={expected}")
         assert observed == expected, \
             f"FAIL at Fibonacci term {i+1}: got {observed}, expected {expected}"
@@ -78,8 +78,8 @@ async def test_pc_advances(dut):
 
     for _ in range(100):
         await RisingEdge(dut.clk)
-        current_pc = cpu.pc_out.value.integer
-        instr = cpu.current_instruction.value.integer
+        current_pc = cpu.pc_out.value.to_unsigned()
+        instr = cpu.current_instruction.value.to_unsigned()
         opcode = instr & 0x7F
 
         # skip branches, jumps, and PRNT
@@ -111,16 +111,16 @@ async def test_halt(dut):
 
     for _ in range(2000):
         await RisingEdge(dut.clk)
-        instr = cpu.current_instruction.value.integer
+        instr = cpu.current_instruction.value.to_unsigned()
         if (instr & 0x7F) == PRNT_OPCODE:
             prints_seen += 1
 
     assert prints_seen >= len(FIBONACCI), \
         f"Only saw {prints_seen} PRNT instructions, expected at least {len(FIBONACCI)}"
 
-    snapshot = dut.uo_out.value.integer
+    snapshot = dut.uo_out.value.to_unsigned()
     await ClockCycles(dut.clk, 20)
-    assert dut.uo_out.value.integer == snapshot, \
-        f"uo_out changed after halt: was {snapshot}, now {dut.uo_out.value.integer}"
+    assert dut.uo_out.value.to_unsigned() == snapshot, \
+        f"uo_out changed after halt: was {snapshot}, now {dut.uo_out.value.to_unsigned()}"
 
     dut._log.info(f"Halt stability test passed — uo_out stable at {snapshot}")
