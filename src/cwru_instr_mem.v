@@ -2,7 +2,7 @@
 
 module cwru_instr_mem # (
     parameter WIDTH = 32,
-    parameter DEPTH = 256
+    parameter DEPTH = 64
 )(
     input wire[WIDTH-1:0] pc,
     output reg[WIDTH-1:0] instr

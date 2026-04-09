@@ -1,4 +1,5 @@
 `default_nettype none
+`timescale 1ns / 1ps
 
 module tt_um_cwru_cpu (
     input  wire [7:0] ui_in,
@@ -114,16 +115,6 @@ module tt_um_cwru_cpu (
     .zero_flag(zero_flag)
   );
 
-  cwru_data_mem dm (
-    .clk(clk),
-    .rst_n(rst_n),
-    .addr(res),
-    .wr_data(rd_data2),
-    .mem_read(mem_read),
-    .mem_write(mem_write),
-    .mem_data(mem_data)
-  );
-
-  // wire _unused = &{ena, ui_in, uio_in, display, 1'b0};
+   wire _unused = &{ena, ui_in, uio_in, display, 1'b0};
 
 endmodule
