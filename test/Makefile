@@ -12,6 +12,7 @@ PROJECT_SOURCES = cwru_alu.v \
                   cwru_instr_mem.v \
                   cwru_program_counter.v \
                   cwru_register_file.v \
+                  cwru_display.v \
                   project.v
 
 ifneq ($(GATES),yes)
