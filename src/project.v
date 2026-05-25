@@ -12,46 +12,46 @@ module tt_um_cwru_cpu (
 );
 
   wire [6:0] seg;
-  wire [3:0] ade;
+  wire       ade;
 
   assign uo_out  = {1'b1, seg};
-  assign uio_out = {4'b0, ade};
-  assign uio_oe  = 8'b00001111;
+  assign uio_out = {7'b0, ade};
+  assign uio_oe  = 8'b00000001;
 
   wire [31:0] pc_in, pc_out;
   wire [31:0] current_instruction;
 
-  wire [4:0] rd_addr1, rd_addr2, wr_addr;
+  wire [4:0]  rd_addr1, rd_addr2, wr_addr;
   wire [31:0] rd_data1, rd_data2, wr_data;
 
-  wire [6:0] opcode;
-  wire [2:0] funct3;
-  wire [6:0] funct7;
+  wire [6:0]  opcode;
+  wire [2:0]  funct3;
+  wire [6:0]  funct7;
 
-  wire reg_write, branch_eq;
-  wire alu_src, jump, display;
-  wire [3:0] alu_cont;
+  wire        reg_write, branch_eq;
+  wire        alu_src, jump, display;
+  wire [3:0]  alu_cont;
 
   wire [31:0] immediate;
   wire [31:0] res;
-  wire zero_flag;
+  wire        zero_flag;
 
-  assign opcode = current_instruction[6:0];
-  assign wr_addr = current_instruction[11:7];
-  assign funct3 = current_instruction[14:12];
+  assign opcode   = current_instruction[6:0];
+  assign wr_addr  = current_instruction[11:7];
+  assign funct3   = current_instruction[14:12];
   assign rd_addr1 = current_instruction[19:15];
   assign rd_addr2 = current_instruction[24:20];
-  assign funct7 = current_instruction[31:25];
+  assign funct7   = current_instruction[31:25];
 
   wire [31:0] op1, op2;
   assign op1 = rd_data1;
   assign op2 = alu_src ? immediate : rd_data2;
 
-  wire branch_taken;
+  wire        branch_taken;
   wire [31:0] pc_plus4, pc_branch, pc_jump;
-  assign pc_plus4 = pc_out + 32'd4;
-  assign pc_branch = pc_out + (immediate << 1);
-  assign pc_jump = pc_out + immediate;
+  assign pc_plus4     = pc_out + 32'd4;
+  assign pc_branch    = pc_out + (immediate << 1);
+  assign pc_jump      = pc_out + immediate;
   assign branch_taken = branch_eq & zero_flag;
   assign pc_in = !rst_n       ? 32'h0     :
                  jump         ? pc_jump   :
@@ -62,7 +62,7 @@ module tt_um_cwru_cpu (
 
   reg [31:0] display_val;
   always @(posedge clk) begin
-    if (~rst_n) display_val <= 32'b0;
+    if (~rst_n)       display_val <= 32'b0;
     else if (display) display_val <= rd_data1;
   end
 
