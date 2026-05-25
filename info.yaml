@@ -23,6 +23,7 @@ project:
     - "cwru_instr_mem.v"
     - "cwru_register_file.v"
     - "cwru_program_counter.v"
+    - "cwru_display.v"
     - "project.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
