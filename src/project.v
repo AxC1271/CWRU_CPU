@@ -14,7 +14,7 @@ module tt_um_cwru_cpu (
   wire [6:0] seg;
   wire [3:0] ade;
 
-  assign uo_out  = {1'b0, seg};
+  assign uo_out  = {1'b1, seg};
   assign uio_out = {4'b0, ade};
   assign uio_oe  = 8'b00001111;
 
