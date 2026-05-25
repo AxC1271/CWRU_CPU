@@ -32,6 +32,52 @@ module tb ();
       .rst_n  (rst_n)
   );
 
+  // decode common-anode seg code to digit character
+  task automatic decode_seg;
+    input [6:0] seg;
+    output reg [7:0] ch; // ASCII character
+    begin
+      case (seg)
+        7'b0000001: ch = "0";
+        7'b1001111: ch = "1";
+        7'b0010010: ch = "2";
+        7'b0000110: ch = "3";
+        7'b1001100: ch = "4";
+        7'b0100100: ch = "5";
+        7'b0100000: ch = "6";
+        7'b0001111: ch = "7";
+        7'b0000000: ch = "8";
+        7'b0000100: ch = "9";
+        7'b1111110: ch = " "; // blank
+        default:    ch = "?";
+      endcase
+    end
+  endtask
+
+  task automatic print_display;
+    reg [6:0] seg;
+    reg [3:0] ade;
+    reg [7:0] ch;
+    integer   digit_pos;
+    begin
+      seg = user_project.uo_out[6:0];
+      ade = user_project.uio_out[3:0];
+
+      decode_seg(seg, ch);
+
+      case (ade)
+        4'b1110: digit_pos = 0; // rightmost
+        4'b1101: digit_pos = 1;
+        4'b1011: digit_pos = 2;
+        4'b0111: digit_pos = 3; // leftmost
+        default: digit_pos = -1;
+      endcase
+
+      $display(">>> SEG at t=%0t  seg=7'b%b  digit=%s  anode_pos=%0d",
+        $time, seg, ch, digit_pos);
+    end
+  endtask
+
   initial begin
     ena    = 1;
     ui_in  = 8'h00;
@@ -45,28 +91,26 @@ module tb ();
     $finish;
   end
 
-  // print header
   initial $display("time\t\tpc\t\tinstr\t\tx1\t\tx2\t\tx3\t\tx4");
 
-  // monitor every cycle
   always @(posedge clk) begin
     if (rst_n) begin
       $display("%0t\t\t%h\t\t%h\t\t%h\t\t%h\t\t%h\t\t%h",
         $time,
         user_project.pc_out,
         user_project.current_instruction,
-        user_project.rf.registers[1],   // x1 (F_n-2)
-        user_project.rf.registers[2],   // x2 (F_n-1)
-        user_project.rf.registers[3],   // x3 (current fib)
-        user_project.rf.registers[4]    // x4 (counter)
+        user_project.rf.registers[1],
+        user_project.rf.registers[2],
+        user_project.rf.registers[3],
+        user_project.rf.registers[4]
       );
     end
   end
 
-  // flag every print instruction
   always @(posedge clk) begin
     if (rst_n && user_project.current_instruction[6:0] == 7'h7F) begin
-      $display(">>> PRINT at t=%0t  x3 = %0d", $time, user_project.rf.registers[3]);
+      $display(">>> PRINT at t=%0t  x1 = %0d", $time, user_project.rf.registers[1]);
+      print_display();
     end
   end
 
@@ -80,6 +124,13 @@ module tb ();
         user_project.zero_flag,
         user_project.branch_taken
       );
+    end
+  end
+
+  // log any seg change outside of print instructions
+  always @(uo_out or uio_out) begin
+    if (rst_n) begin
+      print_display();
     end
   end
 

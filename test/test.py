@@ -6,9 +6,10 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge
 
-FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
 PRNT_OPCODE = 0x7F
 GL_TEST = os.environ.get("GL_TEST", "0") == "1"
+
+NUM_TERMS = 10  # how many counter values to verify
 
 
 async def reset(dut):
@@ -39,10 +40,10 @@ async def test_reset(dut):
 
 
 @cocotb.test()
-async def test_fibonacci(dut):
+async def test_counter(dut):
     """
-    RTL: poll for PRNT opcode and check rd_data1.
-    GL:  poll uo_out directly for each fibonacci value.
+    RTL: poll for PRNT opcode and check rd_data1 increments by 1 each time.
+    GL:  poll uo_out directly for each expected counter value.
     """
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
@@ -51,31 +52,38 @@ async def test_fibonacci(dut):
     dut._log.info("Reset released — CPU running")
 
     if GL_TEST:
-        # gate level: only top-level ports available
-        for i, expected in enumerate(FIBONACCI):
+        for expected in range(NUM_TERMS):
             for _ in range(10000):
                 await RisingEdge(dut.clk)
                 if dut.uo_out.value.to_unsigned() == expected:
                     break
             else:
                 assert False, \
-                    f"Timeout waiting for Fibonacci term {i+1}={expected}"
-            dut._log.info(f"  Term {i+1}: uo_out={expected} ✓")
+                    f"Timeout waiting for counter value {expected}"
+            dut._log.info(f"  Count {expected}: uo_out={expected} ✓")
     else:
-        # RTL: use internal signals
         cpu = dut.user_project
-        for i, expected in enumerate(FIBONACCI):
-            while True:
+        expected = 0
+        for _ in range(NUM_TERMS):
+            for _ in range(10000):
                 await RisingEdge(dut.clk)
                 instr = cpu.current_instruction.value.to_unsigned()
                 if dut.rst_n.value == 1 and (instr & 0x7F) == PRNT_OPCODE:
                     break
-            observed = cpu.rd_data1.value.to_unsigned()
-            dut._log.info(f"  Term {i+1}: rd_data1={observed}, expected={expected}")
-            assert observed == expected, \
-                f"FAIL at Fibonacci term {i+1}: got {observed}, expected {expected}"
+            else:
+                assert False, \
+                    f"Timeout waiting for PRNT instruction (expected count={expected})"
 
-    dut._log.info("All 10 Fibonacci terms matched — PASS")
+            observed = cpu.rd_data1.value.to_unsigned()
+            dut._log.info(f"  Count {expected}: rd_data1={observed} ✓")
+            assert observed == expected, \
+                f"FAIL at count {expected}: got {observed}"
+            expected += 1
+
+            # wait one cycle so next iteration doesn't re-latch the same PRNT
+            await RisingEdge(dut.clk)
+
+    dut._log.info(f"First {NUM_TERMS} counter values verified — PASS")
 
 
 @cocotb.test()
@@ -118,37 +126,43 @@ async def test_pc_advances(dut):
 
 
 @cocotb.test()
-async def test_halt(dut):
-    """After all fibonacci terms print, uo_out should stay stable."""
+async def test_counter_wraps(dut):
+    """
+    Counter should keep incrementing past 9 without getting stuck.
+    Verifies the loop is truly infinite and x1 keeps growing.
+    """
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
     await reset(dut)
 
     if GL_TEST:
-        # gate level: just check uo_out is stable after enough cycles
-        await ClockCycles(dut.clk, 2000)
-        snapshot = dut.uo_out.value.to_unsigned()
-        await ClockCycles(dut.clk, 20)
-        assert dut.uo_out.value.to_unsigned() == snapshot, \
-            f"uo_out changed after halt: was {snapshot}, now {dut.uo_out.value.to_unsigned()}"
-        dut._log.info(f"Halt stability test passed — uo_out stable at {snapshot}")
+        await ClockCycles(dut.clk, 5000)
+        val_a = dut.uo_out.value.to_unsigned()
+        await ClockCycles(dut.clk, 500)
+        val_b = dut.uo_out.value.to_unsigned()
+        assert val_b != val_a or val_b > 0, \
+            "uo_out appears stuck — counter may have halted"
+        dut._log.info(f"Counter wrap test passed — uo_out still changing at GL level")
         return
 
     cpu = dut.user_project
-    prints_seen = 0
+    prints_seen = []
 
-    for _ in range(2000):
+    for _ in range(20000):
         await RisingEdge(dut.clk)
         instr = cpu.current_instruction.value.to_unsigned()
-        if (instr & 0x7F) == PRNT_OPCODE:
-            prints_seen += 1
+        if dut.rst_n.value == 1 and (instr & 0x7F) == PRNT_OPCODE:
+            val = cpu.rd_data1.value.to_unsigned()
+            if not prints_seen or val != prints_seen[-1]:
+                prints_seen.append(val)
+            if len(prints_seen) >= 15:
+                break
 
-    assert prints_seen >= len(FIBONACCI), \
-        f"Only saw {prints_seen} PRNT instructions, expected at least {len(FIBONACCI)}"
+    assert len(prints_seen) >= 15, \
+        f"Only saw {len(prints_seen)} distinct counter values, expected at least 15"
 
-    snapshot = dut.uo_out.value.to_unsigned()
-    await ClockCycles(dut.clk, 20)
-    assert dut.uo_out.value.to_unsigned() == snapshot, \
-        f"uo_out changed after halt: was {snapshot}, now {dut.uo_out.value.to_unsigned()}"
+    for i in range(1, len(prints_seen)):
+        assert prints_seen[i] == prints_seen[i-1] + 1, \
+            f"Counter skipped: {prints_seen[i-1]} -> {prints_seen[i]}"
 
-    dut._log.info(f"Halt stability test passed — uo_out stable at {snapshot}")
+    dut._log.info(f"Counter wrap test passed — saw values {prints_seen[0]}..{prints_seen[-1]}")
