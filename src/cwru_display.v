@@ -1,4 +1,4 @@
-module seven_seg_mux (
+module cwru_display (
     input  wire        clk,
     input  wire        rst,
     input  wire        print,
