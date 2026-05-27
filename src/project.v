@@ -121,7 +121,7 @@ module tt_um_cwru_cpu (
   cwru_display display_inst (
     .clk(clk),
     .rst(~rst_n),
-    .print(|display_val),
+    .display(|display_val),
     .val(display_val),
     .seg(seg),
     .ade(ade)

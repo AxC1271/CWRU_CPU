@@ -62,6 +62,7 @@ module cwru_control_unit (
         alu_src = 1'b0;
         alu_cont = ALU_ADD;
         jump = 1'b0;
+        display = 1'b0;
 
         case (opcode)
         // R-Type

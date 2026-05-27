@@ -1,14 +1,14 @@
 module cwru_display (
     input  wire        clk,
     input  wire        rst,
-    input  wire        print,
+    input  wire        display,
     input  wire [31:0] val,
     output reg  [6:0]  seg,
     output reg         ade
 );
 
     always @(posedge clk or posedge rst) begin
-        if (rst || !print) begin
+        if (rst || !display) begin
             seg <= 7'b1111110;
             ade <= 1'b1;
         end else begin
