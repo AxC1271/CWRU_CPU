@@ -7,7 +7,7 @@ project:
   language:     "Verilog"
   clock_hz:     5
 
-  tiles: "2x1"
+  tiles: "1x2"
 
   top_module:  "tt_um_cwru_cpu"
 
