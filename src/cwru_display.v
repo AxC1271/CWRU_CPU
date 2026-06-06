@@ -6,8 +6,8 @@ module cwru_display (
     output reg  [6:0]  seg,
     output reg         ade
 );
-    always @(posedge clk or negedge rst_n) begin
-        if (rst_n || !display) begin
+    always @(posedge clk) begin
+        if (~rst_n || !display) begin
             seg <= 7'b0000001;
             ade <= 1'b1;
         end else begin
