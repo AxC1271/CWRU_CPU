@@ -78,7 +78,7 @@ module tt_um_cwru_cpu (
   );
 
   cwru_register_file rf (
-    .clk(clk_1hz),
+    .clk(clk),
     .rst_n(rst_n),
     .rd_addr1(rd_addr1),
     .rd_addr2(rd_addr2),
