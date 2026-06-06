@@ -52,15 +52,27 @@ async def test_counter(dut):
     dut._log.info("Reset released — CPU running")
 
     if GL_TEST:
+        SEG_ENCODING = {
+            0: 0b01111110,
+            1: 0b00110000,
+            2: 0b01101101,
+            3: 0b01111001,
+            4: 0b00110011,
+            5: 0b01011011,
+            6: 0b01011111,
+            7: 0b01110000,
+            8: 0b01111111,
+            9: 0b01111011,
+        }
         for expected in range(NUM_TERMS):
             for _ in range(10000):
                 await RisingEdge(dut.clk)
-                if dut.uo_out.value.to_unsigned() == expected:
+                if dut.uo_out.value.to_unsigned() == SEG_ENCODING[expected % 10]:
                     break
             else:
                 assert False, \
                     f"Timeout waiting for counter value {expected}"
-            dut._log.info(f"  Count {expected}: uo_out={expected} ✓")
+            dut._log.info(f"  Count {expected}: uo_out={hex(dut.uo_out.value.to_unsigned())} ✓")
     else:
         cpu = dut.user_project
         expected = 0
