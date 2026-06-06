@@ -7,7 +7,7 @@ project:
   language:     "Verilog"
   clock_hz:     50
 
-  tiles: "2x1"
+  tiles: "1x1"
 
   top_module:  "tt_um_cwru_cpu"
 
@@ -38,10 +38,10 @@ pinout:
   uo[5]: "SEG_F"
   uo[6]: "SEG_G"
   uo[7]: ""
-  uio[0]: "ADE_0"
-  uio[1]: "ADE_1"
-  uio[2]: "ADE_2"
-  uio[3]: "ADE_3"
+  uio[0]: "ADE"
+  uio[1]: ""
+  uio[2]: ""
+  uio[3]: ""
   uio[4]: ""
   uio[5]: ""
   uio[6]: ""
