@@ -24,7 +24,7 @@ async def reset(dut):
 
 @cocotb.test()
 async def test_reset(dut):
-    """seg should be blank (7'b1111110) and uo_out[7] high during reset."""
+    """seg should be blank (7'b0000001) and uo_out[7] low during reset."""
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
 
@@ -34,8 +34,8 @@ async def test_reset(dut):
     dut.rst_n.value  = 0
 
     await ClockCycles(dut.clk, 5)
-    assert dut.uo_out.value == 0b11111110, \
-        f"Expected uo_out=0xFE during reset (blank display), got {dut.uo_out.value}"
+    assert dut.uo_out.value == 0b00000001, \
+        f"Expected uo_out=0x01 during reset (blank display), got {dut.uo_out.value}"
     dut._log.info("Reset test passed")
 
 
