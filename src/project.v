@@ -14,7 +14,7 @@ module tt_um_cwru_cpu (
   wire [6:0] seg;
   wire       ade;
 
-  assign uo_out  = {1'b1, seg};
+  assign uo_out  = {1'b0, seg};
   assign uio_out = {7'b0, ade};
   assign uio_oe  = 8'b00000001;
 
@@ -78,7 +78,7 @@ module tt_um_cwru_cpu (
   );
 
   cwru_register_file rf (
-    .clk(clk),
+    .clk(clk_1hz),
     .rst_n(rst_n),
     .rd_addr1(rd_addr1),
     .rd_addr2(rd_addr2),
